@@ -1,0 +1,12 @@
+{
+    "name": "vanilla-js-project",
+    "version": "1.0.0",
+    "description": "A simple Vanilla JavaScript project",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js"
+    },
+    "author": "Magzhan",
+    "license": "MIT"
+  }
+  
