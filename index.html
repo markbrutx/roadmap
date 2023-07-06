@@ -2,9 +2,10 @@
 <html>
 <head>
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-
+    <meta charset="UTF-8">
   <title>RoadMap</title>
   <style>
     body {
@@ -12,9 +13,29 @@
       padding: 20px;
       background-color: #f9f9f9;
     }
+
+    .task-count {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+    }
+
+    .task-count-dights {
+      color: green;
+    }
+
+    .pomodoro-count {
+      color: green;
+    }
+    .card-action {
+      display: flex;
+    }
     .branch {
       margin-bottom: 30px;
       padding-left: 20px;
+      display: flex;
+      flex-direction: column;
     }
     .branch-title {
       font-weight: bold;
@@ -26,6 +47,8 @@
       margin-bottom: 10px;
       padding-left: 20px;
       position: relative;
+      gap: 10px;
+      overflow-wrap: break-word;
     }
     .task.completed span {
       text-decoration: line-through;
@@ -33,15 +56,20 @@
     }
 
     .container {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
     }
 
     .pomodoro-container {
-      margin-left: 50px;
       font-family: Arial, sans-serif;
       text-align: center;
       width: 400px;
+      height: 500px;
       background-color: white;
+
+      position: fixed;
+      top: 20px;
+      right: 100px;
     }
 
     #timer {
@@ -60,370 +88,21 @@
     #tabs {
       margin-bottom: 10px;
     }
+
+    button {
+      margin-left: 40px;
+    }
   </style>
-  <script>
-    function openTaskUrl(url) {
-      window.open(url, '_blank');
-    }
+  <script src="main.js"></script>
 
-    function handleTaskCompletion(taskId) {
-      const taskElement = document.getElementById(taskId);
-      const completed = taskElement.classList.toggle('completed');
-      localStorage.setItem(taskId, completed);
-    }
-
-    function updateTaskCounters() {
-        const totalTasks = document.getElementsByClassName('task').length;
-        const completedTasks = document.getElementsByClassName('completed').length;
-        document.getElementById('taskCounter').innerText = `${completedTasks}/${totalTasks}`;
-    }
-    
-    var pomodoroCount = 0;
-    var timeLeft = 25 * 60;
-    var isBreak = false;
-    var intervalId;
-
-    function pausePomodoro() {
-      clearInterval(intervalId);
-    }
-
-    function updateTimerDisplay(timeInputId, timerId, isBreakMode) {
-      var minutes = Math.floor(timeLeft / 60);
-      var seconds = timeLeft % 60;
-      if (seconds < 10) seconds = "0" + seconds;
-      var timerElement = document.getElementById(timerId);
-      timerElement.innerText = `${minutes}:${seconds}`;
-      timerElement.className = isBreakMode ? 'break' : 'pomodoro';
-      
-      // Обновление названия вкладки
-      var titlePrefix = isBreakMode ? 'B' : 'P';
-      document.title = `${titlePrefix}: ${minutes}:${seconds}`;
-    }
-
-    function startPomodoro() {
-      clearInterval(intervalId);
-      intervalId = setInterval(() => {
-        timeLeft--;
-        if (timeLeft < 0) {
-          switchModes();
-        }
-        updateTimerDisplay(isBreak ? 'breakTime' : 'pomodoroTime', isBreak ? 'timerBreak' : 'timerPomodoro', isBreak);
-      }, 1000);
-    }
-
-    function stopPomodoro() {
-      clearInterval(intervalId);
-      
-      // Установка стандартных значений для таймеров
-      document.getElementById('pomodoroTime').value = 25;
-      document.getElementById('breakTime').value = 5;
-      
-      // Обновление отображения таймеров
-      timeLeft = 25 * 60;
-      updateTimerDisplay('pomodoroTime', 'timerPomodoro', false);
-      timeLeft = 5 * 60;
-      updateTimerDisplay('breakTime', 'timerBreak', true);
-    }
-
-
-    function switchModes() {
-      if (isBreak) {
-        var pomodoroTime = document.getElementById('pomodoroTime').value;
-        timeLeft = pomodoroTime * 60;
-        isBreak = false;
-
-        // Обновляем таймер Break
-        updateTimerDisplay('breakTime', 'timerBreak', true);
-
-        // Переключаем вкладку на Pomodoro
-        var instance = M.Tabs.getInstance(document.querySelector('.tabs'));
-        instance.select('pomodoro');
-      } else {
-        var breakTime = document.getElementById('breakTime').value;
-        timeLeft = breakTime * 60;
-        isBreak = true;
-        pomodoroCount++;
-        document.getElementById('pomodoroCount').innerText = pomodoroCount;
-
-        // Звуковой алерт
-        document.getElementById('audio').play();
-
-        // Уведомление в браузере
-        if (!('Notification' in window)) {
-          console.log('This browser does not support desktop notification');
-        } else if (Notification.permission === 'granted') {
-          var notification = new Notification('Pomodoro Completed!');
-        } else if (Notification.permission !== 'denied') {
-          Notification.requestPermission().then(function (permission) {
-            if (permission === 'granted') {
-              var notification = new Notification('Pomodoro Completed!');
-            }
-          });
-        }
-
-        // Обновляем таймер Pomodoro
-        updateTimerDisplay('pomodoroTime', 'timerPomodoro', false);
-
-        // Переключаем вкладку на Break
-        var instance = M.Tabs.getInstance(document.querySelector('.tabs'));
-        instance.select('break');
-      }
-    }
-
-
-    document.addEventListener('DOMContentLoaded', (event) => {
-      const tasks = document.getElementsByClassName('task');
-      for (let i = 0; i < tasks.length; i++) {
-          const taskId = tasks[i].id;
-          const completed = localStorage.getItem(taskId) === 'true';
-          if (completed) {
-          tasks[i].classList.add('completed');
-          tasks[i].querySelector('input').checked = true;
-          }
-      }
-      updateTaskCounters();
-      M.Tabs.init(document.querySelector('.tabs'));
-
-      // Добавляем события click для вкладок
-      document.querySelector('.tab a[href="#pomodoro"]').addEventListener('click', () => {
-        document.getElementById('pomodoroTime').value = 25;
-        timeLeft = 25 * 60;
-        isBreak = false;
-        updateTimerDisplay('pomodoroTime', 'timerPomodoro', false);
-        stopPomodoro();
-        document.title = 'Roadmap'; // Сбрасываем название вкладки
-      });
-
-      document.querySelector('.tab a[href="#break"]').addEventListener('click', () => {
-        document.getElementById('breakTime').value = 5;
-        timeLeft = 5 * 60;
-        isBreak = true;
-        updateTimerDisplay('breakTime', 'timerBreak', true);
-        stopPomodoro();
-        document.title = 'Roadmap'; // Сбрасываем название вкладки
-      });
-
-      document.getElementById('pomodoroTime').addEventListener('change', (event) => {
-        if (!isBreak) {
-          timeLeft = event.target.value * 60;
-          updateTimerDisplay('pomodoroTime', 'timerPomodoro', false);
-        }
-      });
-
-      document.getElementById('breakTime').addEventListener('change', (event) => {
-        if (isBreak) {
-          timeLeft = event.target.value * 60;
-          updateTimerDisplay('breakTime', 'timerBreak', true);
-        }
-      });
-
-      updateTimerDisplay('pomodoroTime', 'timerPomodoro', false);
-      updateTimerDisplay('breakTime', 'timerBreak', true);
-    
-  });
-
-
-
-    function handleTaskCompletion(taskId) {
-        const taskElement = document.getElementById(taskId);
-        const completed = taskElement.classList.toggle('completed');
-        localStorage.setItem(taskId, completed);
-        updateTaskCounters();
-    }
-
-  </script>
 </head>
 <body>
   <audio id="audio" src="done.mp3" preload="auto"></audio>
   <div class="container">
-    <div class="roadmap-container">
-      <div class="branch">
-        <div class="branch-title">Алгоритмы сортировки:</div>
-        <div class="task" id="task1">
-          <input type="checkbox" onclick="handleTaskCompletion('task1')">
-          <span onclick="openTaskUrl('https://leetcode.com/problems/sort-colors/description/')">
-            Bubble Sort: "Sort Colors" (№75)
-          </span>
-        </div>
-        <div class="task" id="task2">
-          <input type="checkbox" onclick="handleTaskCompletion('task2')">
-          <span onclick="openTaskUrl('https://leetcode.com/problems/kth-largest-element-in-an-array/')">
-            Quick Sort: "Kth Largest Element in an Array" (№215)
-          </span>
-        </div>
-      </div>
-    
-      <div class="branch">
-        <div class="branch-title">Разворот одно/двусвязного списка:</div>
-        <div class="task" id="task3">
-          <input type="checkbox" onclick="handleTaskCompletion('task3')">
-          <span onclick="openTaskUrl('https://leetcode.com/problems/reverse-linked-list/')">
-            "Reverse Linked List" (№206)
-          </span>
-        </div>
-        <div class="task" id="task4">
-          <input type="checkbox" onclick="handleTaskCompletion('task4')">
-          <span onclick="openTaskUrl('https://leetcode.com/problems/reverse-linked-list-ii/')">
-            "Reverse Linked List II" (№92)
-          </span>
-        </div>
-      </div>
-    
-      <div class="branch">
-        <div class="branch-title">Разворот строки:</div>
-        <div class="task" id="task5">
-          <input type="checkbox" onclick="handleTaskCompletion('task5')">
-          <span onclick="openTaskUrl('https://leetcode.com/problems/reverse-string/')">
-            "Reverse String" (№344)
-          </span>
-        </div>
-        <div class="task" id="task6">
-          <input type="checkbox" onclick="handleTaskCompletion('task6')">
-          <span onclick="openTaskUrl('https://leetcode.com/problems/reverse-string-ii/')">
-            "Reverse String II" (№541)
-          </span>
-        </div>
-      </div>
-    
-      <div class="branch">
-        <div class="branch-title">Обход дерева:</div>
-        <div class="task" id="task7">
-          <input type="checkbox" onclick="handleTaskCompletion('task7')">
-          <span onclick="openTaskUrl('https://leetcode.com/problems/binary-tree-inorder-traversal/')">
-            "Binary Tree Inorder Traversal" (№94)
-          </span>
-        </div>
-        <div class="task" id="task8">
-          <input type="checkbox" onclick="handleTaskCompletion('task8')">
-          <span onclick="openTaskUrl('https://leetcode.com/problems/binary-tree-preorder-traversal/')">
-            "Binary Tree Preorder Traversal" (№144)
-          </span>
-        </div>
-        <div class="task" id="task9">
-          <input type="checkbox" onclick="handleTaskCompletion('task9')">
-          <span onclick="openTaskUrl('https://leetcode.com/problems/binary-tree-postorder-traversal/')">
-            "Binary Tree Postorder Traversal" (№145)
-          </span>
-        </div>
-        <div class="task" id="task10">
-          <input type="checkbox" onclick="handleTaskCompletion('task10')">
-          <span onclick="openTaskUrl('https://leetcode.com/problems/binary-tree-level-order-traversal/')">
-            "Binary Tree Level Order Traversal" (№102)
-          </span>
-        </div>
-      </div>
-
-      <div class="branch">
-        <div class="branch-title">JavaScript вопросы:</div>
-        <div class="task" id="task11">
-          <input type="checkbox" onclick="handleTaskCompletion('task11')">
-          <span>
-            Область видимости в JavaScript
-          </span>
-        </div>
-        
-        <div class="task" id="task12">
-          <input type="checkbox" onclick="handleTaskCompletion('task12')">
-          <span>
-            Замыкания в JavaScript
-          </span>
-        </div>
-        
-        <div class="task" id="task13">
-          <input type="checkbox" onclick="handleTaskCompletion('task13')">
-          <span>
-            Прототипы в JavaScript
-          </span>
-        </div>
-        
-        <div class="task" id="task14">
-          <input type="checkbox" onclick="handleTaskCompletion('task14')">
-          <span>
-            Как работают async/await в JavaScript?
-          </span>
-        </div>
-        
-        <div class="task" id="task15">
-          <input type="checkbox" onclick="handleTaskCompletion('task15')">
-          <span>
-            Стандартные функции языка (setTimeout, fetch, Promise)
-          </span>
-        </div>
-        
-        <div class="task" id="task16">
-          <input type="checkbox" onclick="handleTaskCompletion('task16')">
-          <span>
-            Что такое "hoisting" в JavaScript?
-          </span>
-        </div>
-        
-        <div class="task" id="task17">
-          <input type="checkbox" onclick="handleTaskCompletion('task17')">
-          <span>
-            Как работает ключевое слово "this" в JavaScript?
-          </span>
-        </div>
-        
-        <div class="task" id="task18">
-          <input type="checkbox" onclick="handleTaskCompletion('task18')">
-          <span>
-            Какие типы данных есть в JavaScript?
-          </span>
-        </div>
-        
-        <div class="task" id="task19">
-          <input type="checkbox" onclick="handleTaskCompletion('task19')">
-          <span>
-            Что такое "event loop" в JavaScript?
-          </span>
-        </div>
-        
-        <div class="task" id="task20">
-          <input type="checkbox" onclick="handleTaskCompletion('task20')">
-          <span>
-            Объясните разницу между == и === в JavaScript.
-          </span>
-        </div>
-        
-        <div class="task" id="task21">
-          <input type="checkbox" onclick="handleTaskCompletion('task21')">
-          <span>
-            Как обрабатывать исключения в JavaScript?
-          </span>
-        </div>
-        
-        <div class="task" id="task22">
-          <input type="checkbox" onclick="handleTaskCompletion('task22')">
-          <span>
-            Что такое стрелочные функции в JavaScript и как они отличаются от обычных функций?
-          </span>
-        </div>
-        
-        <div class="task" id="task23">
-          <input type="checkbox" onclick="handleTaskCompletion('task23')">
-          <span>
-            Что такое функция высшего порядка в JavaScript?
-          </span>
-        </div>
-        
-        <div class="task" id="task24">
-          <input type="checkbox" onclick="handleTaskCompletion('task24')">
-          <span>
-            Что такое CORS в контексте JavaScript и для чего он нужен?
-          </span>
-        </div>
-        
-        <div class="task" id="task25">
-          <input type="checkbox" onclick="handleTaskCompletion('task25')">
-          <span>
-            Что такое DOM (Document Object Model) в JavaScript?
-          </span>
-        </div>
-        
-      </div>
-    
-      <p id="taskCounter" class="branch"></p>
+    <div id="roadmap-container" 
+      class="roadmap-container">
     </div>
+        
     <div class="pomodoro-container card">
       <h2 class="card-title">Pomodoro Timer</h2>
       <div class="card-content">
@@ -448,8 +127,13 @@
         <button id="stopButton" onclick="stopPomodoro()" class="btn red">Stop</button>
       </div>
       <div class="card-content">
-        <p>Pomodoros completed: <span id="pomodoroCount">0</span></p>
+        <p class="task-count">
+          Tasks completed:
+          <span id="taskCounter" class="task-count-dights"></span>
+        </p>
       </div>
+
+      
     </div>
     
     

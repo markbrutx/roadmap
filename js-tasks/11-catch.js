@@ -2,12 +2,13 @@
 
 try {
     // Код, который может вызвать исключение
-    const result = 10 / 0;
+    const result = 10 / 0; 
     console.log(result);
 } catch (error) {
     // Обработка исключения
     console.log('An error occurred:', error);
 }
+
 
 
 

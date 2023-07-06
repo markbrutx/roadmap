@@ -7,6 +7,7 @@ function multiplyBy(n) {
     };
 }
 
+
 const multiplyByTwo = multiplyBy(2);
 console.log(multiplyByTwo(5));  // Logs: 10
   

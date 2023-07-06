@@ -15,6 +15,14 @@ console.log(localVar);
 
 
 
+
+
+
+
+
+
+
+
 // ОТВЕТ
 
 // Область видимости в JavaScript (JS)

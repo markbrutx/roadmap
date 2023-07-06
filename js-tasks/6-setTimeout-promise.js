@@ -1,16 +1,42 @@
-const myPromise = new Promise((resolve, reject) => {
-    setTimeout(() => {
-        resolve('Promise resolved')
-    }, 2000);
-});
+Promise.resolve(10)
+  .then(e => console.log(e)) // 10
+  .then(e => Promise.resolve(e))
+  .then(console.log) // undefined
+  .then(e => {
+    if (!e) {
+      throw 'Error caught';
+    }
+  })
+  .catch(e => {
+    console.log(e); // Object {message: "Error caught"}
+    return new Error('New error');
+  })
+  .then(e => {
+    console.log(e.message); // New error
+  })
+  .catch(e => {
+    console.log(e.message); // ??
+  });
+
+// path js-tasks/6-setTimeout-promise.js
+
+
+
+
+// const myPromise = new Promise((resolve, reject) => {
+//     setTimeout(() => {
+//         resolve('Promise resolved')
+//     }, 2000);
+// });
   
-myPromise
-.then(value => {
-    console.log(value);  // Logs: 'Promise resolved'
-})
-.catch(error => {
-    console.log(error);
-});
+// myPromise
+// .then(value => {
+//     console.log(value);  // Logs: 'Promise resolved'
+// })
+// .catch(error => {
+//     console.log(error);
+// });
+
 
 
 // setTimeout позволяет запланировать выполнение 

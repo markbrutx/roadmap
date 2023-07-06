@@ -1,6 +1,7 @@
 // Какие типы данных есть в JavaScript?
 
 
+
 console.log(typeof 42);         // Logs: number
 console.log(typeof 'Hello');    // Logs: string
 console.log(typeof true);       // Logs: boolean
